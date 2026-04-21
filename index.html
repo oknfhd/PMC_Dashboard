@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="/src/styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PMC Statistics</title>
+  <script type="module" src="/src/main.ts" defer></script>
+</head>
+
+<body>
+
+  <div class="container d-flex justify-content-between mt-3">
+
+    <h2>Welcome!</h2>
+
+    <div class="align-items-end">
+      <div class="d-flex justify-content-end">
+
+        <div class="ms-2 dropdown">
+          <button class="btn btn-outline-success dropdown-toggle" type="button" id="files_dropdown"
+            data-bs-toggle="dropdown" aria-expanded="false">
+            Import...
+          </button>
+          <ul class="dropdown-menu">
+            <li>
+              <button class="dropdown-item import-btn" id="import-btn">Import New</button>
+            </li>
+            <li>
+              <div class="d-flex align-items-center">
+                <hr class="flex-fill">
+                <p class="mx-2 text-secondary">Files</p>
+                <hr class="flex-fill">
+              </div>
+
+            </li>
+            <li>
+              <div id="files_menu"></div>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+      <div>
+        <p>File Formats: <span class="text-success">.xlsx, .xls, .csv (imports all sheets)</span></p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="mx-3">
+
+  <!-- Filter, summary-->
+  <div class="container">
+
+    <div class="d-flex justify-content-between align-items-baseline mt-2">
+      <p class="m-0 p-0">Active Filters: <span id="active_filters">None</span></p>
+      <!-- YEAR -->
+      <div class="timeline_options d-flex gap-2">
+        <div class="dropdown">
+          <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="year_dropdown" data-bs-toggle="dropdown"
+            aria-expanded="false">
+            Year
+          </button>
+          <ul class="dropdown-menu" id="year_menu"></ul>
+        </div>
+        <!-- MONTH -->
+        <div class="dropdown">
+          <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="month_dropdown" data-bs-toggle="dropdown"
+            aria-expanded="false">
+            Month
+          </button>
+          <ul class="dropdown-menu" id="month_menu"></ul>
+        </div>
+        <button class="btn btn-outline-danger" id="reset_filter">Reset filter</button>
+      </div>
+    </div>
+
+
+  </div>
+
+
+
+  <!-- Row 1 Clients-->
+  <hr class="mx-3">
+
+  <div class="container d-flex justify-content-between align-items-center">
+    <h2 class="c-2">Statistics</h2>
+    <a href="/summary.html">
+      <button class="btn btn-outline-info">View Summary</button>
+    </a>
+
+
+  </div>
+
+  <div class="container mt-3">
+    <div class="row gap-2">
+
+      <div class="col-2">
+        <div class="row mb-2">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Total Clients</h5>
+              <p class="card-text text-white-50" id="total_clients">0</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="row mb-2">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Clients this <span id="year_filtered">Year</span></h5>
+              <p class="card-text text-white-50" id="total_clients_year">0</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Clients this <span id="month_filtered">Month</span></h5>
+              <p class="card-text text-white-50" id="total_clients_month">0</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="col">
+        <div class="row">
+          <div class="card py-2" id="card_yearly">
+            <div class="card-body">
+              <h5 class="card-title">Yearly Clients</h5>
+              <div class="chart-container">
+                <canvas id="dash_yearly"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="row">
+          <div class="card py-2" id="card_monthly">
+            <div class="card-body">
+              <h5 class="card-title">Monthly Clients</h5>
+              <div class="chart-container">
+                <canvas id="dash_monthly"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Row 2 Trends-->
+  <div class="container mt-3">
+    <div class="row">
+
+      <div class="col">
+        <div class="card" id="card_age">
+          <div class="card-body">
+            <h5 class="card-title">Age Group</h5>
+            <div class="chart-container">
+              <canvas id="chart_age"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="card" id="card_sex">
+          <div class="card-body container">
+            <h5 class="card-title">Sex</h5>
+            <div class="chart-container d-flex justify-content-center">
+              <canvas id="chart_sex" class="chart_sex"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- Row 3 Charts -->
+  <div class="container">
+    <div class="row mb-3">
+
+      <div class="col-3">
+
+      </div>
+
+      <div class="col-3">
+
+      </div>
+
+    </div>
+
+    <div class="row">
+
+      <div class="col">
+        <div class="card" id="card_occupation">
+          <div class="card-body">
+            <h5 class="card-title">Occupation</h5>
+            <div class="chart-container2">
+              <canvas id="chart_occupation"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="card" id="card_education">
+          <div class="card-body">
+            <h5 class="card-title">Educational Attainment</h5>
+            <div class="chart-container2">
+              <canvas id="chart_education"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="card" id="card_address">
+          <div class="card-body">
+            <h5 class="card-title">Address</h5>
+            <div class="chart-container2">
+              <canvas id="chart_address"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+
+  </div>
+
+
+</body>
+
+
+
+</html>

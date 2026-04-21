@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="/src/styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Summary</title>
+    <script type="module" src="/src/main.ts" defer></script>
+</head>
+
+<body>
+    <div class="container">
+
+        <a href="index.html">
+            <button class="btn btn-outline-info my-2">Back</button>
+        </a>
+
+        <div class="summary_title d-flex justify-content-between">
+            <h3>Summary</h3>
+        </div>
+
+        <div class="container mt-3 summary-cont">
+            <div class="row">
+                <div class="col px-2 border-end">
+                    <div class="summary_date">
+                        <strong>Filters: </strong>
+                        <ul>
+                            <li><span id="active_month">All Months</span>, <span id="active_year">All Years</span></li>
+                            <li><span id="active_filters">None</span></li>
+                        </ul>
+
+
+                    </div>
+                </div>
+                <div class="col px-2 border-end">
+                    <p>Sex:</p>
+                    <ul>
+                        <li>
+                            <p>
+                                <span class="text-secondary">Female:</span>
+                                <span id="female_count">0</span>
+                            </p>
+                        </li>
+                        <li>
+
+                            <p>
+                                <span class="text-secondary">Male:</span>
+                                <span id="male_count">0</span>
+                            </p>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col px-2">
+                    <p class="m-0 p-0">Age Group:</p>
+                    <ul>
+                        <li>
+                            <p>
+                                <span class="text-secondary">0-17:</span>
+                                <span id="age_1">0</span>
+                            </p>
+                        </li>
+                        <li>
+                            <p>
+                                <span class="text-secondary">18-25:</span>
+                                <span id="age_2">0</span>
+                            </p>
+                        </li>
+                        <li>
+                            <p>
+                                <span class="text-secondary">26-40:</span>
+                                <span id="age_3">0</span>
+                            </p>
+                        </li>
+                        <li>
+                            <p>
+                                <span class="text-secondary">41-59:</span>
+                                <span id="age_4">0</span>
+                            </p>
+                        </li>
+                        <li>
+                            <p>
+                                <span class="text-secondary">60+:</span>
+                                <span id="age_5">0</span>
+                            </p>
+                        </li>
+                    </ul>
+
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="row">
+                <div class="col py-2 border-end">
+                    <p class="m-0 p-0">Occupation: </p>
+                    <div class="occupation_list">
+                        <ul></ul>
+                    </div>
+                </div>
+
+                <div class="col py-2 border-end">
+                    <p class="m-0 p-0">Education: </p>
+                    <div class="education_list">
+                        <ul></ul>
+                    </div>
+                </div>
+
+                <div class="col py-2">
+                    <p class="m-0 p-0">Address: </p>
+                    <div class="address_list">
+                        <ul></ul>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</body>
+
+</html>

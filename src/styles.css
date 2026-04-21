@@ -1,0 +1,70 @@
+@import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
+@import "../node_modules/bootstrap-icons/font/bootstrap-icons.min.css";
+
+body {
+  background-color: #212121;
+  color: #f6f6f6;
+}
+
+.card {
+  background-color: inherit;
+  color: white;
+  border: 1px rgb(148, 148, 148) solid;
+}
+
+.chart-active {
+  border: white 1px solid !important;
+}
+
+.chart-container {
+  position: relative;
+  height: 250px;
+}
+
+.accordion-item, .accordion-button {
+  background-color: transparent;
+  color: white;
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: transparent;
+  color: white;
+}
+
+p {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+ul li {
+  list-style: none;
+}
+
+.delete_btn {
+  background-color: transparent;
+  border: none;
+}
+
+.delete_btn:hover {
+  background-color: pink !important;
+}
+
+.dropdown-menu {
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.125);
+}
+
+.chart-container2 {
+  position: relative;
+  width: 100%;        /* respects Bootstrap col */
+  height: 350px;
+}
+
+.chart-container2 canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.summary-cont .row .col {
+  border-color: #f6f6f653 !important;
+}
