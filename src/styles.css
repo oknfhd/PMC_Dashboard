@@ -2,13 +2,15 @@
 @import "../node_modules/bootstrap-icons/font/bootstrap-icons.min.css";
 
 body {
-  background-color: #212121;
-  color: #f6f6f6;
+  /* background-color: #212121;
+  color: #f6f6f6; */
+  background-color: white;
+  color: black;
 }
 
 .card {
   background-color: inherit;
-  color: white;
+  color: black;
   border: 1px rgb(148, 148, 148) solid;
 }
 
@@ -18,17 +20,27 @@ body {
 
 .chart-container {
   position: relative;
-  height: 250px;
+  width: 100%;
+  height: clamp(200px, 30vh, 300px);
+}
+
+.chart-container2 {
+  position: relative;
+  width: 100%;
+  height: clamp(250px, 35vh, 400px);
+}
+
+.chart-container2 canvas {
+  width: 100% !important;
+  height: 100% !important;
 }
 
 .accordion-item, .accordion-button {
   background-color: transparent;
-  color: white;
 }
 
 .accordion-button:not(.collapsed) {
   background-color: transparent;
-  color: white;
 }
 
 p {
@@ -54,17 +66,147 @@ ul li {
     border: 1px solid rgba(255, 255, 255, 0.125);
 }
 
-.chart-container2 {
-  position: relative;
-  width: 100%;        /* respects Bootstrap col */
-  height: 350px;
-}
-
-.chart-container2 canvas {
-  width: 100% !important;
-  height: 100% !important;
-}
-
 .summary-cont .row .col {
   border-color: #f6f6f653 !important;
+}
+
+/* print */
+@media print {
+
+  body {
+    font-size: 10pt;
+  }
+
+  .btn,
+  .dropdown,
+  #reset_filter {
+    display: none !important;
+  }
+
+  .container {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  /* .col,
+  [class*="col-"] {
+    flex: 0 0 100%;
+    max-width: 100%;
+  } */
+
+  .card {
+    page-break-inside: avoid;
+    margin-bottom: 10px;
+  }
+
+  /* canvas {
+    max-height: 250px !important;
+  } */
+
+  h2, h5 {
+    font-size: 12pt;
+  }
+
+  /* Force 2 charts per row for better portrait fit */
+  #card_yearly,
+  #card_monthly,
+  #card_age,
+  #card_sex {
+    /* flex: 0 0 50%; */
+    /* max-width: 50%; */
+  }
+
+}
+
+.item_list ul {
+  column-width: 200px;   /* controls column size */
+  column-gap: 20px;
+  page-break-inside: avoid;
+}
+
+.item_list li {
+  break-inside: avoid;
+}
+
+.start_border {
+  border-left: 1px rgba(0, 0, 0, 0.529) solid;
+}
+
+/* =========================
+   PRINT MODE (SCREEN PREVIEW)
+========================= */
+.print-mode .btn,
+.print-mode .dropdown,
+.print-mode #reset_filter,
+.print-mode #files_dropdown {
+  display: none !important;
+}
+
+.print-mode .to_print {
+  display: none !important;
+}
+
+.print-mode .timeline-options {
+  display: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.print-mode h2::after {
+  font-size: 0.8em;
+  color: gray;
+}
+
+/* label print mode
+.print-mode .to_print::after {
+  visibility: hidden;
+} */
+
+.print-mode .container {
+  max-width: 100% !important;
+}
+
+/* Expand layout */
+.print-mode .row {
+  display: flex;
+  flex-wrap: wrap;
+  /* gap: 10px; */
+}
+
+/* Cards become report blocks */
+.print-mode .card {
+  border: 1px solid #000;
+  box-shadow: none;
+  padding: 10px;
+}
+
+/* Make charts bigger */
+.print-mode .chart-container {
+  /* height: 300px !important; */
+}
+
+.print-mode .chart-container2 {
+  /* height: 350px !important; */
+}
+
+/* Force 2 charts per row */
+.print-mode #card_yearly,
+.print-mode #card_monthly,
+.print-mode #card_age,
+.print-mode #card_sex {
+  /* flex: 0 0 48%;
+  max-width: 48%; */
+}
+
+/* Force 3 charts row into 2-per-row */
+.print-mode #card_occupation,
+.print-mode #card_education,
+.print-mode #card_address {
+  /* flex: 0 0 48%;
+  max-width: 48%; */
 }

@@ -22,8 +22,16 @@ type Client = {
 };
 
 type Filters = {
+  // Date range filters (from/to)
+  fromYear: string;
+  fromMonth: string;
+  toYear: string;
+  toMonth: string;
+
+  // Legacy single selection (kept for backward compatibility)
   year: string;
   month: string;
+
   sex: SexFilter;
   ageGroup: string;
   occupation: string;
@@ -61,6 +69,10 @@ let allClients: Client[] = [];
 let importedFiles: ImportedFile[] = [];
 
 let filters: Filters = {
+  fromYear: "all",
+  fromMonth: "all",
+  toYear: "all",
+  toMonth: "all",
   year: "all",
   month: "all",
   sex: "all",
@@ -258,6 +270,10 @@ function loadStateFromStorage(): void {
       const parsed = JSON.parse(rawFilters) as Partial<Filters>;
       if (parsed && typeof parsed === "object") {
         filters = {
+          fromYear: parsed.fromYear ?? "all",
+          fromMonth: parsed.fromMonth ?? "all",
+          toYear: parsed.toYear ?? "all",
+          toMonth: parsed.toMonth ?? "all",
           year: parsed.year ?? "all",
           month: parsed.month ?? "all",
           sex: parsed.sex ?? "all",
@@ -499,7 +515,7 @@ function mapToClients(rows: any[], sourceFile: ImportedFile): Client[] {
 
       const parsed = {
         date: dateYmd,
-       sex: normalizeSexValue(String(row["sex"] ?? "")),
+        sex: normalizeSexValue(String(row["sex"] ?? "")),
         age,
         address: normalize(String(row["address"] ?? "")),
         occupation: normalize(String(row["occupation"] ?? "")),
@@ -605,6 +621,10 @@ function getMonths(data: Client[], selectedYear: string): number[] {
 
 function resetFilters(): void {
   filters = {
+    fromYear: "all",
+    fromMonth: "all",
+    toYear: "all",
+    toMonth: "all",
     year: "all",
     month: "all",
     sex: "all",
@@ -623,14 +643,59 @@ function resetFilters(): void {
 function filterClientsByFilters(source: Client[], f: Filters): Client[] {
   let filtered = source;
 
-  if (f.year !== "all") {
+  // Date range filtering using from/to year/month
+  const hasFromDate = f.fromYear !== "all" || f.fromMonth !== "all";
+  const hasToDate = f.toYear !== "all" || f.toMonth !== "all";
+
+  if (hasFromDate || hasToDate) {
+    filtered = filtered.filter((c) => {
+      const parts = parseYmdToParts(c.date);
+      if (!parts) return false;
+
+      const dateYear = parts.y;
+      const dateMonth = parts.m;
+
+      // Check from date (inclusive)
+      if (f.fromYear !== "all") {
+        const fromYear = parseInt(f.fromYear);
+        if (f.fromMonth !== "all") {
+          const fromMonth = parseInt(f.fromMonth);
+          // Compare year-month: date must be >= fromYear-fromMonth
+          if (dateYear < fromYear) return false;
+          if (dateYear === fromYear && dateMonth < fromMonth) return false;
+        } else {
+          // Only year filter: date must be >= fromYear-01
+          if (dateYear < fromYear) return false;
+        }
+      }
+
+      // Check to date (inclusive)
+      if (f.toYear !== "all") {
+        const toYear = parseInt(f.toYear);
+        if (f.toMonth !== "all") {
+          const toMonth = parseInt(f.toMonth);
+          // Compare year-month: date must be <= toYear-toMonth
+          if (dateYear > toYear) return false;
+          if (dateYear === toYear && dateMonth > toMonth) return false;
+        } else {
+          // Only year filter: date must be <= toYear-12
+          if (dateYear > toYear) return false;
+        }
+      }
+
+      return true;
+    });
+  }
+
+  // Legacy single year/month filtering (for backward compatibility)
+  if (f.year !== "all" && !hasFromDate) {
     filtered = filtered.filter((c) => {
       const parts = parseYmdToParts(c.date);
       return !!parts && parts.y.toString() === f.year;
     });
   }
 
-  if (f.month !== "all") {
+  if (f.month !== "all" && !hasFromDate && !hasToDate && f.year === "all") {
     filtered = filtered.filter((c) => {
       const parts = parseYmdToParts(c.date);
       return !!parts && parts.m.toString() === f.month;
@@ -682,8 +747,36 @@ function displayActiveFilters(): void {
 
   const activeFilters: string[] = [];
 
-  if (filters.year !== "all") activeFilters.push(`Year: ${filters.year}`);
-  if (filters.month !== "all") activeFilters.push(`Month: ${getMonthName(filters.month)}`);
+  // Date range filters (from/to)
+  const hasFromDate = filters.fromYear !== "all" || filters.fromMonth !== "all";
+  const hasToDate = filters.toYear !== "all" || filters.toMonth !== "all";
+
+  if (hasFromDate || hasToDate) {
+    let dateRange = "Date: ";
+    if (filters.fromYear !== "all") {
+      dateRange += filters.fromYear;
+      if (filters.fromMonth !== "all") {
+        dateRange += "-" + getMonthName(filters.fromMonth).substring(0, 3);
+      }
+    } else if (filters.fromMonth !== "all") {
+      dateRange += getMonthName(filters.fromMonth);
+    }
+
+    if (hasToDate) {
+      dateRange += " to ";
+      if (filters.toYear !== "all") {
+        dateRange += filters.toYear;
+        if (filters.toMonth !== "all") {
+          dateRange += "-" + getMonthName(filters.toMonth).substring(0, 3);
+        }
+      } else if (filters.toMonth !== "all") {
+        dateRange += getMonthName(filters.toMonth);
+      }
+    }
+
+    activeFilters.push(dateRange);
+  }
+
   if (filters.sex !== "all") activeFilters.push(`Sex: ${capitalize(filters.sex)}`);
   if (filters.ageGroup !== "all") activeFilters.push(`Age Group: ${filters.ageGroup}`);
   if (filters.occupation !== "all") activeFilters.push(`Occupation: ${capitalize(filters.occupation)}`);
@@ -699,17 +792,51 @@ function displayActiveFilters(): void {
 // ============================================================================
 
 function updateUI(data: Client[]): void {
-  setTextById("active_year", filters.year === "all" ? "All Years" : filters.year);
-  setTextById("active_month", filters.month === "all" ? "All Months" : getMonthName(filters.month));
+  // Update active filter labels for display
+  const hasDateRange = filters.fromYear !== "all" || filters.fromMonth !== "all" || filters.toYear !== "all" || filters.toMonth !== "all";
+  if (hasDateRange) {
+    let yearLabel = "";
+    if (filters.fromYear !== "all" && filters.toYear !== "all" && filters.fromYear === filters.toYear) {
+      yearLabel = filters.fromYear;
+    } else if (filters.fromYear !== "all" || filters.toYear !== "all") {
+      yearLabel = (filters.fromYear !== "all" ? filters.fromYear : "...") + "-" + (filters.toYear !== "all" ? filters.toYear : "...");
+    } else {
+      yearLabel = "All Years";
+    }
+    setTextById("active_year", yearLabel);
+  } else {
+    setTextById("active_year", filters.year === "all" ? "All Years" : filters.year);
+  }
+  setTextById("active_month", filters.month === "all" ? "Month" : getMonthName(filters.month));
 
   const totalClients = allClients.length;
   setTextById("total_clients", totalClients.toString());
 
-  const clientsFilteredMonth = data.length;
-  setTextById("total_clients_month", clientsFilteredMonth.toString());
+  // Total clients in selected timeline
+  const timelineClients = data.length;
+  setTextById("total_clients_year", timelineClients.toString());
 
-  const clientsFilteredYear = filterClientsByFilters(allClients, { ...filters, month: "all" }).length;
-  setTextById("total_clients_year", clientsFilteredYear.toString());
+  // --- Average Monthly Clients ---
+  const monthSet = new Set<string>();
+
+  data.forEach(c => {
+    const parts = parseYmdToParts(c.date);
+    if (!parts) return;
+
+    const key = `${parts.y}-${parts.m}`;
+    monthSet.add(key);
+  });
+
+  const totalMonths = monthSet.size;
+
+  // avoid division by zero
+  const avgMonthly = totalMonths > 0
+    ? (timelineClients / totalMonths)
+    : 0;
+
+  // round (no decimals or 1 decimal if you prefer)
+  setTextById("total_clients_month", avgMonthly.toFixed(1));
+
 
   // 🔥 NEW: update labels dynamically
   updateDashboardLabels();
@@ -732,19 +859,6 @@ function updateDashboardLabels(): void {
     monthLabel.innerText =
       filters.month === "all" ? "Month" : getMonthName(filters.month);
   }
-
-  // Optional UX improvement:
-  const monthText = document.getElementById("total_clients_month");
-  // Optional UX improvement:
-  const yearText = document.getElementById("total_clients_year");
-
-  if (monthText && filters.month === "all") {
-    monthText.innerText = "Select month";
-  }
-
-  if (yearText && filters.year === "all") {
-    yearText.innerText = "Select year";
-  }
 }
 
 
@@ -754,7 +868,7 @@ function renderCharts(data: Client[]): void {
   renderOccupationChart(data);
   renderEducationChart(data);
   renderAddressChart(data);
-  renderMonthlyChart(allClients);
+  renderMonthlyChart(data);
   renderYearlyChart(allClients);
 }
 
@@ -762,30 +876,67 @@ function renderCharts(data: Client[]): void {
 // DROPDOWN RENDERING
 // ============================================================================
 
-function renderYearDropdown(): void {
-  const menu = document.getElementById("year_menu");
+function renderYearDropdownFrom(): void {
+  const menu = document.getElementById("year_menu_from");
   if (!menu) return;
   menu.innerHTML = "";
 
-  menu.innerHTML += `<li><a class="dropdown-item" data-year="all">All Years</a></li>`;
+  menu.innerHTML += `<li><a class="dropdown-item" data-year-from="all">All Years</a></li>`;
 
   getYears(allClients).forEach(year => {
-    menu.innerHTML += `<li><a class="dropdown-item" data-year="${year}">${year}</a></li>`;
+    menu.innerHTML += `<li><a class="dropdown-item" data-year-from="${year}">${year}</a></li>`;
   });
 }
 
-function renderMonthDropdown(): void {
-  const menu = document.getElementById("month_menu");
+function renderYearDropdownTo(): void {
+  const menu = document.getElementById("year_menu_to");
   if (!menu) return;
   menu.innerHTML = "";
 
-  menu.innerHTML += `<li><a class="dropdown-item" data-month="all">All Months</a></li>`;
+  menu.innerHTML += `<li><a class="dropdown-item" data-year-to="all">All Years</a></li>`;
 
-  const availableMonths = getMonths(allClients, filters.year);
+  getYears(allClients).forEach(year => {
+    menu.innerHTML += `<li><a class="dropdown-item" data-year-to="${year}">${year}</a></li>`;
+  });
+}
+
+function renderMonthDropdownFrom(): void {
+  const menu = document.getElementById("month_menu_from");
+  if (!menu) return;
+  menu.innerHTML = "";
+
+  menu.innerHTML += `<li><a class="dropdown-item" data-month-from="all">Month</a></li>`;
+
+  const availableMonths = getMonths(allClients, filters.fromYear);
 
   availableMonths.forEach(m => {
-    menu.innerHTML += `<li><a class="dropdown-item" data-month="${m}">${MONTH_NAMES[m - 1]}</a></li>`;
+    menu.innerHTML += `<li><a class="dropdown-item" data-month-from="${m}">${MONTH_NAMES[m - 1]}</a></li>`;
   });
+}
+
+function renderMonthDropdownTo(): void {
+  const menu = document.getElementById("month_menu_to");
+  if (!menu) return;
+  menu.innerHTML = "";
+
+  menu.innerHTML += `<li><a class="dropdown-item" data-month-to="all">Month</a></li>`;
+
+  const availableMonths = getMonths(allClients, filters.toYear);
+
+  availableMonths.forEach(m => {
+    menu.innerHTML += `<li><a class="dropdown-item" data-month-to="${m}">${MONTH_NAMES[m - 1]}</a></li>`;
+  });
+}
+
+// Legacy functions for backward compatibility
+function renderYearDropdown(): void {
+  renderYearDropdownFrom();
+  renderYearDropdownTo();
+}
+
+function renderMonthDropdown(): void {
+  renderMonthDropdownFrom();
+  renderMonthDropdownTo();
 }
 
 // ============================================================================
@@ -814,7 +965,7 @@ function renderSexChart(data: Client[]): void {
   // Calculate opacity based on filter state - gray out the non-selected segment
   const isMaleFiltered = filters.sex === "male";
   const isFemaleFiltered = filters.sex === "female";
-  
+
   const bgColors = [
     isMaleFiltered && counts.male > 0 ? backgroundColors[0] : (counts.male === 0 ? '#cccccc' : backgroundColors[0]),
     isFemaleFiltered && counts.female > 0 ? backgroundColors[1] : (counts.female === 0 ? '#cccccc' : backgroundColors[1])
@@ -842,11 +993,11 @@ function renderSexChart(data: Client[]): void {
         legend: {
           position: "right",
           labels: {
-            generateLabels: function() {
+            generateLabels: function () {
               return [
                 {
                   text: `Male`,
-                  fontColor: '#cccccc',
+                  fontColor: '#1a1a1a',
                   fillStyle: counts.male === 0 ? '#cccccc' : backgroundColors[0],
                   strokeStyle: borderColors[0],
                   lineWidth: 2,
@@ -855,7 +1006,7 @@ function renderSexChart(data: Client[]): void {
                 },
                 {
                   text: `Female`,
-                  fontColor: '#cccccc',
+                  fontColor: '#1a1a1a',
                   fillStyle: counts.female === 0 ? '#cccccc' : backgroundColors[1],
                   strokeStyle: borderColors[1],
                   lineWidth: 2,
@@ -868,7 +1019,7 @@ function renderSexChart(data: Client[]): void {
         },
         tooltip: {
           callbacks: {
-            label: function(context) {
+            label: function (context) {
               const total = counts.male + counts.female;
               const percentage = total > 0 ? ((context.parsed as number) / total * 100).toFixed(1) : '0.0';
               return `${context.label}: ${context.parsed} (${percentage}%)`;
@@ -915,6 +1066,7 @@ function renderAgeChart(data: Client[]): void {
     type: "bar",
     data: { labels, datasets: [{ data: values }] },
     options: {
+      responsive: true,
       scales: {
         y: { ticks: { callback: (value) => Number.isInteger(value) ? value : null } }
       },
@@ -989,6 +1141,7 @@ function renderOccupationChart(data: Client[]): void {
       datasets: [{ data: finalValues }]
     },
     options: {
+      responsive: true,
       maintainAspectRatio: false,
       scales: {
         x: { ticks: { callback: (value) => Number.isInteger(value) ? value : null } }
@@ -1057,6 +1210,7 @@ function renderEducationChart(data: Client[]): void {
       datasets: [{ data: finalValues }]
     },
     options: {
+      responsive: true,
       maintainAspectRatio: false,
       indexAxis: "y",
       plugins: { legend: { display: false } },
@@ -1121,6 +1275,7 @@ function renderAddressChart(data: Client[]): void {
       datasets: [{ data: finalValues }]
     },
     options: {
+      responsive: true,
       maintainAspectRatio: false,
       indexAxis: "y",
       plugins: { legend: { display: false } },
@@ -1152,49 +1307,40 @@ function renderMonthlyChart(data: Client[]): void {
   const ctx = document.getElementById("dash_monthly") as HTMLCanvasElement | null;
   if (!ctx) return;
 
-  if (filters.year === "all") {
-    if (monthlyChart) monthlyChart.destroy();
+  // Check if date range filter is active (from/to year/month)
+  const hasDateRange = filters.fromYear !== "all" || filters.fromMonth !== "all" ||
+    filters.toYear !== "all" || filters.toMonth !== "all";
 
-    monthlyChart = new Chart(ctx, {
-      type: "line",
-      data: { labels: [], datasets: [{ data: [] }] },
-      options: {
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { display: false },
-          y: { display: false }
-        }
-      }
-    });
 
-    return;
-  }
-
-  const counts: Record<number, number> = {};
+  // Count clients by month within the selected date range
+  const monthlyCounts: Record<string, number> = {};
 
   data.forEach(c => {
     const parts = parseYmdToParts(c.date);
     if (!parts) return;
 
-    // ✅ ONLY year matters
-    if (parts.y.toString() !== filters.year) return;
-
-    counts[parts.m] = (counts[parts.m] || 0) + 1;
+    const yearMonth = `${parts.y}-${String(parts.m).padStart(2, '0')}`;
+    monthlyCounts[yearMonth] = (monthlyCounts[yearMonth] || 0) + 1;
   });
 
-  // 🔥 ALWAYS show full year structure (fixes your issue)
-  const labels = Array.from({ length: 12 }, (_, i) => i + 1);
-  const values = labels.map(m => counts[m] || 0);
+  // Sort by year-month and create labels/values
+  const sortedKeys = Object.keys(monthlyCounts).sort();
+  const labels = sortedKeys.map(key => {
+    const [year, month] = key.split('-');
+    return `${MONTH_NAMES[parseInt(month) - 1]} ${year}`;
+  });
+  const values = sortedKeys.map(key => monthlyCounts[key]);
 
   if (monthlyChart) monthlyChart.destroy();
 
   monthlyChart = new Chart(ctx, {
     type: "line",
     data: {
-      labels: labels.map(m => MONTH_NAMES[m - 1]),
+      labels,
       datasets: [{ data: values }]
     },
     options: {
+      responsive: true,
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
@@ -1232,6 +1378,7 @@ function renderYearlyChart(data: Client[]): void {
     type: "line",
     data: { labels, datasets: [{ data: values }] },
     options: {
+      responsive: true,
       scales: {
         y: { ticks: { callback: (value) => Number.isInteger(value) ? value : null } }
       },
@@ -1247,34 +1394,88 @@ function renderYearlyChart(data: Client[]): void {
 document.addEventListener("click", (e) => {
   const target = e.target as HTMLElement;
 
-  const yearEl = target.closest("[data-year]") as HTMLElement | null;
-  if (yearEl?.dataset.year) {
-    filters.year = yearEl.dataset.year;
-    setTextById("year_dropdown", filters.year === "all" ? "Year" : filters.year);
+  // From Year selection
+  const yearFromEl = target.closest("[data-year-from]") as HTMLElement | null;
+  if (yearFromEl?.dataset.yearFrom) {
+    filters.fromYear = yearFromEl.dataset.yearFrom;
+    setTextById("year_dropdown_from", filters.fromYear === "all" ? "Year" : filters.fromYear);
 
-    filters.month = "all";
+    // Reset from month when year changes
+    filters.fromMonth = "all";
+    setTextById("month_dropdown_from", "Month");
+
+    renderMonthDropdownFrom();
+    applyFilters();
+  }
+
+  // From Month selection
+  const monthFromEl = target.closest("[data-month-from]") as HTMLElement | null;
+  if (monthFromEl?.dataset.monthFrom) {
+    filters.fromMonth = monthFromEl.dataset.monthFrom;
+    setTextById("month_dropdown_from", filters.fromMonth === "all" ? "Month" : monthFromEl.innerText);
+    applyFilters();
+  }
+
+  // To Year selection
+  const yearToEl = target.closest("[data-year-to]") as HTMLElement | null;
+  if (yearToEl?.dataset.yearTo) {
+    filters.toYear = yearToEl.dataset.yearTo;
+    setTextById("year_dropdown", filters.toYear === "all" ? "Year" : filters.toYear);
+
+    // Reset to month when year changes
+    filters.toMonth = "all";
     setTextById("month_dropdown", "Month");
 
-    renderMonthDropdown();
+    renderMonthDropdownTo();
     applyFilters();
   }
 
-  const monthEl = target.closest("[data-month]") as HTMLElement | null;
-  if (monthEl?.dataset.month) {
-    filters.month = monthEl.dataset.month;
-    setTextById("month_dropdown", filters.month === "all" ? "Month" : target.innerText);
+  // To Month selection
+  const monthToEl = target.closest("[data-month-to]") as HTMLElement | null;
+  if (monthToEl?.dataset.monthTo) {
+    filters.toMonth = monthToEl.dataset.monthTo;
+    setTextById("month_dropdown", filters.toMonth === "all" ? "Month" : monthToEl.innerText);
     applyFilters();
   }
 
-  if (target.id === "reset_filter") {
-    resetFilters();
+  // Reset filter button
+if (target.id === "reset_filter") {
+  resetFilters();
+
+  if (allClients.length > 0) {
+    const years = getYears(allClients);
+
+    if (years.length > 0) {
+      const earliestYear = years[years.length - 1];
+      const latestYear = years[0];
+
+      filters.fromYear = earliestYear.toString();
+      filters.toYear = latestYear.toString();
+
+      // reset months
+      filters.fromMonth = "all";
+      filters.toMonth = "all";
+
+      // ✅ Update UI labels
+      setTextById("year_dropdown_from", filters.fromYear);
+      setTextById("month_dropdown_from", "Month");
+
+      setTextById("year_dropdown", filters.toYear);
+      setTextById("month_dropdown", "Month");
+    }
+  } else {
+    // fallback if no data
+    setTextById("year_dropdown_from", "Year");
+    setTextById("month_dropdown_from", "Month");
     setTextById("year_dropdown", "Year");
     setTextById("month_dropdown", "Month");
-
-    renderYearDropdown();
-    renderMonthDropdown();
-    applyFilters();
   }
+
+  renderYearDropdown();
+  renderMonthDropdown();
+  applyFilters();
+}
+
 
   const deleteEl = target.closest("[data-delete-file]") as HTMLElement | null;
   if (deleteEl?.dataset.deleteFile) {
@@ -1291,11 +1492,76 @@ document.addEventListener("click", (e) => {
 
 function init(): void {
   loadStateFromStorage();
+
+  // Set default date range: from earliest to latest date
+  if (allClients.length > 0 && filters.fromYear === "all" && filters.toYear === "all") {
+    const dates = allClients
+      .map(c => parseYmdToParts(c.date))
+      .filter(Boolean) as { y: number; m: number; d: number }[];
+
+    if (dates.length > 0) {
+      // Sort ascending
+      dates.sort((a, b) =>
+        a.y !== b.y ? a.y - b.y :
+          a.m !== b.m ? a.m - b.m :
+            a.d - b.d
+      );
+
+      const earliest = dates[0];
+      const latest = dates[dates.length - 1];
+
+      // ✅ Set FULL range
+      filters.fromYear = earliest.y.toString();
+      filters.fromMonth = earliest.m.toString();
+
+      filters.toYear = latest.y.toString();
+      filters.toMonth = latest.m.toString();
+
+      // ✅ Update UI labels
+      setTextById("year_dropdown_from", filters.fromYear);
+      setTextById("month_dropdown_from", MONTH_NAMES[earliest.m - 1]);
+
+      setTextById("year_dropdown", filters.toYear);
+      setTextById("month_dropdown", MONTH_NAMES[latest.m - 1]);
+    }
+  }
+
+
   renderYearDropdown();
   renderMonthDropdown();
+  updateDateDropdownLabels();
   renderImportedFilesMenu();
   applyFilters();
 }
+
+function updateDateDropdownLabels(): void {
+  // FROM
+  setTextById(
+    "year_dropdown_from",
+    filters.fromYear === "all" ? "Year" : filters.fromYear
+  );
+
+  setTextById(
+    "month_dropdown_from",
+    filters.fromMonth === "all"
+      ? "Month"
+      : MONTH_NAMES[parseInt(filters.fromMonth) - 1]
+  );
+
+  // TO
+  setTextById(
+    "year_dropdown",
+    filters.toYear === "all" ? "Year" : filters.toYear
+  );
+
+  setTextById(
+    "month_dropdown",
+    filters.toMonth === "all"
+      ? "Month"
+      : MONTH_NAMES[parseInt(filters.toMonth) - 1]
+  );
+}
+
 
 window.addEventListener("DOMContentLoaded", () => {
   const importBtn = document.getElementById("import-btn") as HTMLButtonElement | null;
@@ -1355,12 +1621,12 @@ function renderCountList(
 ): void {
   if (!listEl) return;
   if (counts.length === 0) {
-    listEl.innerHTML = `<li class="text-secondary">No data</li>`;
+    listEl.innerHTML = `<li class="list_data">No data</li>`;
     return;
   }
 
   listEl.innerHTML = counts
-    .map(([key, count]) => `<li class="text-secondary"><span>${capitalize(key)}:</span> <span class="text-white">${count}</span></li>`)
+    .map(([key, count]) => `<li class="list_name"><span>${capitalize(key)}:</span> <span class="list_data">${count}</span></li>`)
     .join("");
 }
 
@@ -1467,3 +1733,20 @@ function deleteImportedFile(fileId: string): void {
   renderImportedFilesMenu();
   applyFilters();
 }
+
+//print
+const printBtn = document.getElementById("print_mode_btn");
+
+printBtn?.addEventListener("click", () => {
+  document.body.classList.add("print-mode");
+
+  // give charts time to resize
+  // setTimeout(() => {
+  //   window.print();
+
+  //   // restore UI after printing
+  //   setTimeout(() => {
+  //     document.body.classList.remove("print-mode");
+  //   }, 500);
+  // }, 300);
+});

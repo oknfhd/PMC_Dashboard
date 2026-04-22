@@ -12,75 +12,80 @@
 <body>
     <div class="container">
 
-        <a href="index.html">
-            <button class="btn btn-outline-info my-2">Back</button>
-        </a>
+        <div class="summary_title d-flex justify-content-between my-2">
+            <a href="/index.html">
+                <button class="btn btn-outline-primary">Back</button>
+            </a>
+            <button class="btn btn-outline782-dark" id="print_mode_btn">
+                Print Report
+            </button>
 
-        <div class="summary_title d-flex justify-content-between">
-            <h3>Summary</h3>
         </div>
+
+        <h3>PMC Summary</h3>
+
+        <hr>
 
         <div class="container mt-3 summary-cont">
             <div class="row">
                 <div class="col px-2 border-end">
-                    <div class="summary_date">
-                        <strong>Filters: </strong>
-                        <ul>
-                            <li><span id="active_month">All Months</span>, <span id="active_year">All Years</span></li>
-                            <li><span id="active_filters">None</span></li>
-                        </ul>
-
-
+                    <div>
+                        <p>Timeline:
+                            <span id="active_filters">None</span>
+                        </p>
+                        <p>Total Clients:
+                            <span id="total_clients_year">0</span>
+                        </p>
                     </div>
                 </div>
                 <div class="col px-2 border-end">
-                    <p>Sex:</p>
+                    <p class="fw-bold">Sex:</p>
                     <ul>
                         <li>
                             <p>
-                                <span class="text-secondary">Female:</span>
+                                <span class="list_name">Female:</span>
                                 <span id="female_count">0</span>
                             </p>
                         </li>
                         <li>
 
                             <p>
-                                <span class="text-secondary">Male:</span>
+                                <span class="list_name">Male:</span>
                                 <span id="male_count">0</span>
                             </p>
                         </li>
                     </ul>
                 </div>
                 <div class="col px-2">
-                    <p class="m-0 p-0">Age Group:</p>
+                    <p class="fw-bold">Age Group:</p>
                     <ul>
                         <li>
                             <p>
-                                <span class="text-secondary">0-17:</span>
+                                <span class="list_name">0-17:</span>
                                 <span id="age_1">0</span>
                             </p>
                         </li>
                         <li>
                             <p>
-                                <span class="text-secondary">18-25:</span>
+                                <span class="list_name">18-25:</span>
                                 <span id="age_2">0</span>
                             </p>
                         </li>
                         <li>
                             <p>
-                                <span class="text-secondary">26-40:</span>
+                                <span class="list_name">26-40:</span>
                                 <span id="age_3">0</span>
                             </p>
                         </li>
                         <li>
                             <p>
-                                <span class="text-secondary">41-59:</span>
+                                <span class="list_name">41-59:</span>
                                 <span id="age_4">0</span>
                             </p>
                         </li>
                         <li>
                             <p>
-                                <span class="text-secondary">60+:</span>
+                                <span class="list_name">60+:</span>
                                 <span id="age_5">0</span>
                             </p>
                         </li>
@@ -91,29 +96,27 @@
 
             <hr>
 
-            <div class="row">
-                <div class="col py-2 border-end">
-                    <p class="m-0 p-0">Occupation: </p>
-                    <div class="occupation_list">
-                        <ul></ul>
-                    </div>
+            <div class="row p-2">
+                <p class="fw-bold">Occupation: </p>
+                <div class="occupation_list item_list">
+                    <ul></ul>
                 </div>
-
-                <div class="col py-2 border-end">
-                    <p class="m-0 p-0">Education: </p>
-                    <div class="education_list">
-                        <ul></ul>
-                    </div>
-                </div>
-
-                <div class="col py-2">
-                    <p class="m-0 p-0">Address: </p>
-                    <div class="address_list">
-                        <ul></ul>
-                    </div>
-                </div>
-
             </div>
+
+            <div class="row p-2">
+                <p class="fw-bold">Education: </p>
+                <div class="education_list item_list">
+                    <ul></ul>
+                </div>
+            </div>
+
+            <div class="row p-2">
+                <p class="fw-bold">Address: </p>
+                <div class="address_list item_list">
+                    <ul></ul>
+                </div>
+            </div>
+
 
         </div>
 

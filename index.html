@@ -11,16 +11,19 @@
 
 <body>
 
-  <div class="container d-flex justify-content-between mt-3">
+  <div class="container mt-3">
+    <div class="row align-items-center">
+      <div class="col-md-6 col-12">
+        <h2>Pre-Marriage Counseling</h2>
+        <button class="btn btn-outline-dark" id="print_mode_btn">
+          Print Report
+        </button>
+      </div>
 
-    <h2>Welcome!</h2>
-
-    <div class="align-items-end">
-      <div class="d-flex justify-content-end">
-
-        <div class="ms-2 dropdown">
+      <div class="col-md-6 col-12 text-md-end text-start mt-2 mt-md-0">
+        <div class="dropdown d-inline-block">
           <button class="btn btn-outline-success dropdown-toggle" type="button" id="files_dropdown"
-            data-bs-toggle="dropdown" aria-expanded="false">
+            data-bs-toggle="dropdown">
             Import...
           </button>
           <ul class="dropdown-menu">
@@ -41,9 +44,10 @@
           </ul>
         </div>
 
-      </div>
-      <div>
-        <p>File Formats: <span class="text-success">.xlsx, .xls, .csv (imports all sheets)</span></p>
+        <p class="to_print small mt-1">
+          File Formats:
+          <span class="text-success">.xlsx, .xls, .csv</span>
+        </p>
       </div>
     </div>
   </div>
@@ -52,29 +56,61 @@
 
   <!-- Filter, summary-->
   <div class="container">
-
-    <div class="d-flex justify-content-between align-items-baseline mt-2">
-      <p class="m-0 p-0">Active Filters: <span id="active_filters">None</span></p>
-      <!-- YEAR -->
-      <div class="timeline_options d-flex gap-2">
-        <div class="dropdown">
-          <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="year_dropdown" data-bs-toggle="dropdown"
-            aria-expanded="false">
-            Year
-          </button>
-          <ul class="dropdown-menu" id="year_menu"></ul>
+    <!-- timeline -->
+    <div class="timeline_options align-items-start d-flex justify-content-between mb-2">
+      <div class="d-flex align-items-center">
+        <div class="date_from">
+          <div class="d-flex gap-2 align-items-center">
+            <label class="to_print timeline_label">From</label>
+            <div class="dropdown">
+              <button class="btn btn-outline-secondary dropdown-toggle py-1" type="button" id="year_dropdown_from"
+                data-bs-toggle="dropdown" aria-expanded="false">
+                Year
+              </button>
+              <ul class="dropdown-menu" id="year_menu_from"></ul>
+            </div>
+            <!-- MONTH -->
+            <div class="dropdown">
+              <button class="btn btn-outline-secondary dropdown-toggle py-1" type="button" id="month_dropdown_from"
+                data-bs-toggle="dropdown" aria-expanded="false">
+                Month
+              </button>
+              <ul class="dropdown-menu" id="month_menu_from"></ul>
+            </div>
+          </div>
         </div>
-        <!-- MONTH -->
-        <div class="dropdown">
-          <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="month_dropdown" data-bs-toggle="dropdown"
-            aria-expanded="false">
-            Month
-          </button>
-          <ul class="dropdown-menu" id="month_menu"></ul>
+        <div class="date_to mt-1">
+          <div class="timeline_options d-flex gap-2 align-items-center start_border border-black ms-2 ps-1">
+            <label class="to_print timeline_label">To</label>
+            <div class="dropdown">
+              <button class="btn btn-outline-secondary dropdown-toggle py-1" type="button" id="year_dropdown"
+                data-bs-toggle="dropdown" aria-expanded="false">
+                Year
+              </button>
+              <ul class="dropdown-menu" id="year_menu_to"></ul>
+            </div>
+            <!-- MONTH -->
+            <div class="dropdown">
+              <button class="btn btn-outline-secondary dropdown-toggle py-1" type="button" id="month_dropdown"
+                data-bs-toggle="dropdown" aria-expanded="false">
+                Month
+              </button>
+              <ul class="dropdown-menu" id="month_menu_to"></ul>
+            </div>
+          </div>
         </div>
-        <button class="btn btn-outline-danger" id="reset_filter">Reset filter</button>
+      </div>
+      <div class="d-flex justify-content-end mt-1">
+        <button class="btn btn-outline-danger py-1" id="reset_filter">Reset filter</button>
       </div>
     </div>
+    <div class="">
+      <p class="m-0 p-0"><i>Active Filters:</i></p>
+      <ul>
+        <li><span id="active_filters">None</span></li>
+      </ul>
+    </div>
+
 
 
   </div>
@@ -87,66 +123,45 @@
   <div class="container d-flex justify-content-between align-items-center">
     <h2 class="c-2">Statistics</h2>
     <a href="/summary.html">
-      <button class="btn btn-outline-info">View Summary</button>
+      <button class="btn btn-outline-primary">View Summary</button>
     </a>
 
 
   </div>
 
+  <!-- Row 1 -->
   <div class="container mt-3">
-    <div class="row gap-2">
+    <div class="row g-2">
 
-      <div class="col-2">
-        <div class="row mb-2">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">Total Clients</h5>
-              <p class="card-text text-white-50" id="total_clients">0</p>
-            </div>
+      <div class="col d-flex flex-column justify-content-between">
+        <div class="card mb-1 flex-fill">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <h4 class="card-title">Overall Clients</h4>
+            <p class="card-text text-black fs-2" id="total_clients">0</p>
           </div>
         </div>
 
-        <div class="row mb-2">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">Clients this <span id="year_filtered">Year</span></h5>
-              <p class="card-text text-white-50" id="total_clients_year">0</p>
-            </div>
+        <div class="card mb-1 flex-fill">
+          <div class="card-body d-flex justify-content-between">
+            <h4 class="card-title">Filtered Clients</h4>
+            <p class="card-text text-black fs-2" id="total_clients_year">0</p>
           </div>
         </div>
 
-        <div class="row">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">Clients this <span id="month_filtered">Month</span></h5>
-              <p class="card-text text-white-50" id="total_clients_month">0</p>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <div class="col">
-        <div class="row">
-          <div class="card py-2" id="card_yearly">
-            <div class="card-body">
-              <h5 class="card-title">Yearly Clients</h5>
-              <div class="chart-container">
-                <canvas id="dash_yearly"></canvas>
-              </div>
-            </div>
+        <div class="card mb-1 flex-fill">
+          <div class="card-body d-flex justify-content-between">
+            <h4 class="card-title">Avg Monthly Clients</h4>
+            <p class="card-text text-black fs-2" id="total_clients_month">0</p>
           </div>
         </div>
       </div>
 
       <div class="col">
-        <div class="row">
-          <div class="card py-2" id="card_monthly">
-            <div class="card-body">
-              <h5 class="card-title">Monthly Clients</h5>
-              <div class="chart-container">
-                <canvas id="dash_monthly"></canvas>
-              </div>
+        <div class="card" id="card_yearly">
+          <div class="card-body">
+            <h5 class="card-title">Yearly Clients</h5>
+            <div class="chart-container">
+              <canvas id="dash_yearly"></canvas>
             </div>
           </div>
         </div>
@@ -160,6 +175,19 @@
     <div class="row">
 
       <div class="col">
+        <div class="card h-100" id="card_monthly">
+          <div class="card-body">
+            <h5 class="card-title">Monthly Clients</h5>
+            <div class="chart-container">
+              <canvas id="dash_monthly"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+
+      <div class="col-md-6 col-12 mt-3">
         <div class="card" id="card_age">
           <div class="card-body">
             <h5 class="card-title">Age Group</h5>
@@ -170,7 +198,7 @@
         </div>
       </div>
 
-      <div class="col">
+      <div class="col-md-6 col-12 mt-3">
         <div class="card" id="card_sex">
           <div class="card-body container">
             <h5 class="card-title">Sex</h5>
@@ -187,21 +215,10 @@
 
   <!-- Row 3 Charts -->
   <div class="container">
-    <div class="row mb-3">
-
-      <div class="col-3">
-
-      </div>
-
-      <div class="col-3">
-
-      </div>
-
-    </div>
 
     <div class="row">
 
-      <div class="col">
+      <div class="col-lg-4 col-md-4 col-12 mt-3">
         <div class="card" id="card_occupation">
           <div class="card-body">
             <h5 class="card-title">Occupation</h5>
@@ -212,7 +229,7 @@
         </div>
       </div>
 
-      <div class="col">
+      <div class="col-lg-4 col-md-4 col-12 mt-3">
         <div class="card" id="card_education">
           <div class="card-body">
             <h5 class="card-title">Educational Attainment</h5>
@@ -223,7 +240,7 @@
         </div>
       </div>
 
-      <div class="col">
+      <div class="col-lg-4 col-md-4 col-12 mt-3">
         <div class="card" id="card_address">
           <div class="card-body">
             <h5 class="card-title">Address</h5>
